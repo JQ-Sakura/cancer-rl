@@ -1,0 +1,56 @@
+# 数据集文件夹
+image_with_masks/
+databackup/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境
+venv/
+ENV/
+env/
+.env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 日志和临时文件
+*.log
+wandb/
+logs/
+.DS_Store
+.coverage
+htmlcov/
+.pytest_cache/
+.hypothesis/
+
+# 模型文件（根据需要可以注释掉）
+*.pth
+*.ckpt
+*.pt
+
+# 临时文件
+.port_file
+archive/ 
