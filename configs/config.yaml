@@ -1,0 +1,126 @@
+# Data configuration
+data:
+  data_dir: "/raid/candi/junqing/FYP/image_with_masks"
+  train_val_split: 0.8
+  batch_size: 4
+  num_workers: 4
+  samples_per_volume: 10
+  patch_size: [64, 64, 64]
+  augmentation:
+    enabled: true
+    rotation_range: [-10, 10]
+    flip_probability: 0.5
+    intensity_shift: [-0.1, 0.1]
+    intensity_scale: [0.9, 1.1]
+
+# Model configuration
+model:
+  type: "UNet3D"
+  in_channels: 3
+  base_filters: 16
+  num_levels: 4
+  use_se: true
+  use_deep_supervision: true
+  dropout: 0.1
+  initialization:
+    type: "kaiming_normal"
+    mode: "fan_out"
+    nonlinearity: "relu"
+
+# Training configuration
+training:
+  num_epochs: 200
+  learning_rate: 0.001
+  optimizer:
+    type: "Adam"
+    betas: [0.9, 0.999]
+    weight_decay: 0.0001
+  scheduler:
+    type: "CosineAnnealingLR"
+    T_max: 200
+    eta_min: 1.0e-6
+  early_stopping:
+    patience: 20
+    min_delta: 0.001
+  gradient_clipping: 1.0
+  mixed_precision: true
+  batch_accumulation: 4
+  
+# Loss configuration
+loss:
+  dice_weight: 1.0
+  focal_weight: 1.0
+  boundary_weight: 0.5
+  focal_params:
+    alpha: 0.25
+    gamma: 2.0
+  deep_supervision_weights: [1.0, 0.8, 0.6, 0.4]
+
+# Logging configuration
+logging:
+  tensorboard_dir: "logs/tensorboard"
+  save_dir: "logs/checkpoints"
+  log_interval: 10
+  save_interval: 100
+  
+# Validation configuration
+validation:
+  interval: 1
+  metrics:
+    - "dice"
+    - "iou"
+    - "precision"
+    - "recall"
+    - "boundary_dice"
+  best_metric: "dice"
+  
+# Inference configuration
+inference:
+  batch_size: 1
+  overlap: 0.5
+  post_processing:
+    min_size: 100
+    apply_crf: true
+    crf_params:
+      bilateral_sigma: 3
+      gaussian_sigma: 1
+      
+# Device configuration
+device:
+  type: "cuda"
+  gpu_ids: [0, 1]
+  num_workers: 4
+  pin_memory: true
+  
+# Distributed training
+distributed:
+  enabled: true
+  backend: "nccl"
+  world_size: 2
+  rank: 0
+  dist_url: "tcp://localhost:23456"
+  
+# Wandb configuration
+wandb:
+  project: "cancer-rl"
+  entity: null
+  tags: ["training"]
+  notes: "Training with enhanced metrics"
+
+classifier:
+  model_type: "3DUNet"  # or "Transformer"
+  learning_rate: 0.001
+  patience: 10  # for early stopping
+  input_channels: 3  # for three modalities
+  
+rl:
+  env_name: "CancerDetection-v0"
+  max_episodes: 1000
+  gamma: 0.99
+  learning_rate: 0.0001
+  
+training:
+  seed: 42
+  device: "cuda"
+  log_interval: 100
+  save_dir: "checkpoints" 

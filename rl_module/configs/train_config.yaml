@@ -1,0 +1,251 @@
+# Training parameters
+training:
+  num_episodes: 200000
+  max_steps_per_episode: 256
+  update_interval: 128
+  batch_size: 32
+  ppo_epochs: 4
+  save_interval: 100
+  eval_interval: 10
+  patience: 500
+  min_lr: 1.0e-8
+  lr_decay_factor: 0.7
+  device: 'cuda'
+  use_wandb: true
+  max_memory_batch_size: 256
+  use_amp: false
+  
+  # Hyperparameter search configuration
+  hyperparam_search:
+    enabled: true
+    method: 'bayesian'  # 'random', 'grid', 'bayesian'
+    num_trials: 50
+    max_parallel_trials: 4
+    search_space:
+      ppo:
+        learning_rate: [1e-5, 1e-4]
+        gamma: [0.95, 0.999]
+        epsilon: [0.1, 0.3]
+        gae_lambda: [0.9, 0.99]
+        value_clip_range: [0.1, 0.3]
+        entropy_coef: [0.001, 0.01]
+      env:
+        similarity_threshold: [0.2, 0.4]
+        reward_shaping:
+          exploration_bonus: [0.005, 0.02]
+          entropy_bonus: [0.001, 0.01]
+          progress_bonus: [0.01, 0.05]
+          disease_bonus: [0.01, 0.05]
+          boundary_bonus: [0.005, 0.02]
+          adaptation_rate: [0.001, 0.01]
+    
+    # Early stopping criteria
+    early_stopping:
+      metric: 'avg_dice'  # 使用dice作为主要评估指标
+      patience: 20
+      min_improvement: 0.001
+      mode: 'max'
+    
+    # Trial scheduling
+    scheduling:
+      max_trial_duration: 3600  # 每个trial最长运行时间（秒）
+      checkpoint_freq: 100  # 检查点保存频率（步数）
+      resources_per_trial:
+        cpu: 4
+        gpu: 0.5
+
+# Distributed training parameters
+distributed:
+  enabled: true
+  world_size: 2
+  backend: 'nccl'
+  master_addr: '127.0.0.1'
+  master_port: '29500'
+  init_method: 'tcp://127.0.0.1:29500'
+  gradient_sync_period: 2
+  optimize_memory: true
+  rank: 0
+  local_rank: -1
+  timeout: 60
+  
+# Data loading and processing parameters
+data:
+  num_workers: 1
+  prefetch_factor: 1
+  pin_memory: false
+  persistent_workers: false
+  
+# Model parameters
+model_config:
+  channels: [32, 64, 128, 256]
+  
+  # attention mechanism parameters
+  attention:
+    channel_reduction: 16
+    spatial_kernel_size: 5
+    
+  # feature extraction parameters
+  feature_extraction:
+    use_residual: true
+    use_attention: true
+    dropout_rate: 0.2
+    activation: 'relu'
+    normalization: 'layer'
+
+  # performance optimization parameters
+  optimization:
+    cudnn_benchmark: true
+    cudnn_deterministic: true
+    torch_compile: false
+    compile_mode: 'reduce-overhead'
+    
+  # memory optimization parameters
+  memory:
+    empty_cache_freq: 50
+    gradient_checkpointing: true
+    optimize_memory_usage: true
+    pin_memory: false
+
+# Paths
+paths:
+  data_dir: '/raid/candi/junqing/FYP/image_with_masks'
+  model_path: null
+  log_dir: '/raid/candi/junqing/FYP/logs'
+
+# PPO hyperparameters
+ppo:
+  learning_rate: 5.0e-5
+  gamma: 0.99
+  epsilon: 0.15
+  c1: 0.3
+  c2: 0.02
+  gae_lambda: 0.98
+  normalize_advantages: true
+  clip_grad_norm: 0.5
+  use_reward_scaling: true
+  reward_scaling_factor: 0.1
+  
+  # additional PPO optimization parameters
+  use_value_clipping: true
+  value_clip_range: 0.2
+  use_adaptive_kl: true
+  target_kl: 0.01
+  adaptive_lr: true
+  lr_schedule: 'cosine'
+  warmup_steps: 1000
+  max_grad_norm: 0.5
+  entropy_coef_decay: 0.995
+
+# Environment parameters
+env:
+  similarity_threshold: 0.3
+  min_region_size: 8
+  max_region_size: 2000
+  connectivity: 26
+  use_reward_shaping: true
+  
+  # region growing parameters
+  region_growing:
+    modality_weights: [0.4, 0.3, 0.3]
+    disease_features:
+      intensity_threshold: 0.7
+      smoothing_sigma: 1.0
+      min_prob: 0.2
+    
+  # reward shaping parameters
+  reward_shaping:
+    window_size: 100
+    initial_scale: 1.0
+    min_scale: 0.1
+    max_scale: 2.0
+    adaptation_rate: 0.005
+    exploration_bonus: 0.01
+    entropy_bonus: 0.005
+    progress_bonus: 0.02
+    disease_bonus: 0.03
+    boundary_bonus: 0.01
+    use_adaptive_shaping: true
+    
+  # Prompt-based segmentation parameters
+  use_prompt: true
+  prompt_config:
+    distance_threshold: 0.3
+    temperature: 0.15
+    min_prob: 0.15
+    num_points: 2
+    guidance_alpha: 0.7
+    loss_weight: 0.15
+    use_disease_features: true
+    
+  # curriculum learning parameters
+  curriculum:
+    enabled: true
+    stages:
+      - max_steps: 32
+        num_points: 1
+        distance_threshold: 0.35
+        disease_threshold: 0.6
+      - max_steps: 64
+        num_points: 2
+        distance_threshold: 0.25
+        disease_threshold: 0.5
+      - max_steps: 128
+        num_points: 3
+        distance_threshold: 0.2
+        disease_threshold: 0.4
+    promotion_threshold: 0.4
+    demotion_threshold: 0.2
+
+# Wandb configuration
+wandb:
+  project: "cancer-rl"
+  entity: null
+  log_interval: 1
+  log_gradients: true
+  log_memory: true
+  
+  # 添加Dice相关指标的记录
+  metrics:
+    training:
+      - name: "dice"
+        frequency: 1
+      - name: "avg_dice"
+        frequency: 1
+      - name: "best_dice"
+        frequency: 1
+    evaluation:
+      - name: "eval_dice"
+        frequency: 1
+      - name: "eval_avg_dice"
+        frequency: 1
+
+# Post-processing parameters
+post_processing:
+  min_size: 64
+  apply_crf: true
+  crf_iterations: 5
+  use_adaptive_params: true
+  
+  # CRF parameters
+  crf_config:
+    bilateral_sxy: [3, 3]
+    bilateral_srgb: [5, 5, 5]
+    bilateral_compat: 15
+    gaussian_sxy: [2, 2]
+    gaussian_compat: 5
+    
+  # Morphological parameters
+  morph_params:
+    closing_iterations: 2
+    opening_iterations: 1
+    smoothing_iterations: 1
+    hole_size: 64
+    boundary_size: 1
+    
+  # Adaptive thresholds
+  adaptive_thresholds:
+    contrast_threshold: 0.5
+    large_region_size: 1000
+    multi_region_threshold: 5
+    min_region_size: 32
+    max_region_size: 128 
