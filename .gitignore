@@ -1,6 +1,10 @@
 # 数据集文件夹
 image_with_masks/
 databackup/
+*.nii.gz
+
+*.log
+*.tmp
 
 # Python
 __pycache__/
