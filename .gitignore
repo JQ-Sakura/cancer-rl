@@ -46,11 +46,25 @@ htmlcov/
 .pytest_cache/
 .hypothesis/
 
-# 模型文件（根据需要可以注释掉）
+# 模型文件和检查点
 *.pth
 *.ckpt
 *.pt
+model/
+models/
+checkpoints/
+**/best_reward_model.pt
+**/best_iou_model.pt
+**/checkpoint_episode_*.pt
+**/run-*.wandb
 
 # 临时文件
 .port_file
-archive/ 
+archive/
+
+# 大文件 Git LFS（如果需要这些文件，请使用 Git LFS）
+*.hdf5
+*.h5
+*.pkl
+*.npy
+*.npz 
