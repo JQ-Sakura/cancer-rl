@@ -126,14 +126,11 @@ class AdaptiveRewardShaper:
         improvement_reward = iou_improvement * 3.0  # IoU改进的奖励
         streak_bonus = min(self.improvement_streak * 0.1, 1.0)  # 连续改进奖励
         
-        # 探索奖励
-        exploration_reward = entropy * (1.0 - exploration_factor) * 0.5
+        # 探索奖励 - 增加探索权重
+        exploration_reward = entropy * (1.0 - exploration_factor) * 0.8
         
         # 边界奖励
         boundary_reward = 0.5 if is_boundary else 0.0
-        
-        # 步数惩罚
-        step_penalty = -0.01 * steps_taken
         
         # 组合所有奖励
         shaped_reward = (
@@ -142,8 +139,7 @@ class AdaptiveRewardShaper:
             improvement_reward +
             streak_bonus +
             exploration_reward +
-            boundary_reward +
-            step_penalty
+            boundary_reward
         ) * self.scale
         
         # 更新历史记录
